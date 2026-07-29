@@ -1,0 +1,37 @@
+{
+  "name": "@tanrdev/cache",
+  "version": "0.2.0",
+  "description": "A local-first code snippet library for your terminal and browser.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tanRdev/codecache.git"
+  },
+  "homepage": "https://github.com/tanRdev/codecache#readme",
+  "bugs": {
+    "url": "https://github.com/tanRdev/codecache/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "cache": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "prepack": "npm --prefix ../.. run build:cli"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.9.0",
+    "drizzle-orm": "^0.45.2",
+    "effect": "^3.21.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
