@@ -46,14 +46,14 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 w-[90vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 border border-border-subtle bg-surface-secondary text-popover-foreground outline-none transition-all duration-200 ease-out data-[open]:opacity-100 data-[open]:scale-100 data-[closed]:opacity-0 data-[closed]:scale-95 rounded-lg",
+          "fixed top-1/2 left-1/2 z-50 w-[90vw] max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border-subtle bg-surface-secondary text-popover-foreground outline-none transition-[opacity,transform] duration-200 ease-out data-[open]:scale-100 data-[open]:opacity-100 data-[closed]:scale-95 data-[closed]:opacity-0",
           className
         )}
         {...props}
       >
         {children}
         <DialogPrimitive.Close
-          className="absolute top-4 right-4 flex size-7 items-center justify-center text-muted-foreground opacity-60 transition-all duration-150 hover:opacity-100 hover:bg-secondary rounded-md focus:outline-none disabled:pointer-events-none z-10"
+          className="absolute top-4 right-4 z-10 flex size-8 items-center justify-center rounded-md text-muted-foreground opacity-70 transition-[background-color,color,opacity,transform] duration-150 hover:bg-secondary hover:text-foreground hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95 disabled:pointer-events-none"
         >
           <X className="size-4" />
           <span className="sr-only">Close</span>

@@ -109,8 +109,52 @@ describe("SignInPage", () => {
     expect(refreshSpy).toHaveBeenCalledTimes(1);
   });
 
+  it("preserves nested callback paths and query strings", async () => {
+    useSearchParamsSpy.mockReturnValue(
+      new URLSearchParams(
+        "callbackUrl=%2Fsnippets%2Fsnippet-1%3Fview%3Dexpanded%23notes",
+      ),
+    );
+
+    render(<SignInPage />);
+
+    fireEvent.change(await screen.findByLabelText("Email"), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "SecurePass123!" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+
+    await waitFor(() => {
+      expect(pushSpy).toHaveBeenCalledWith(
+        "/snippets/snippet-1?view=expanded#notes",
+      );
+    });
+  });
+
   it("falls back to dashboard for unsafe callback URLs", async () => {
     useSearchParamsSpy.mockReturnValue(new URLSearchParams("callbackUrl=https%3A%2F%2Fevil.example.com"));
+
+    render(<SignInPage />);
+
+    fireEvent.change(await screen.findByLabelText("Email"), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "SecurePass123!" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign In" }));
+
+    await waitFor(() => {
+      expect(pushSpy).toHaveBeenCalledWith("/dashboard");
+    });
+  });
+
+  it("rejects scheme-relative callback URLs", async () => {
+    useSearchParamsSpy.mockReturnValue(
+      new URLSearchParams("callbackUrl=%2F%2Fevil.example.com"),
+    );
 
     render(<SignInPage />);
 

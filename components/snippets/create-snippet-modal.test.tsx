@@ -66,7 +66,7 @@ describe("CreateSnippetModal", () => {
 
     render(<CreateSnippetModal open onOpenChange={onOpenChange} />);
 
-    fireEvent.change(screen.getByPlaceholderText("Untitled"), {
+    fireEvent.change(screen.getByPlaceholderText("Snippet title"), {
       target: { value: "Modal snippet" },
     });
 
@@ -99,7 +99,7 @@ describe("CreateSnippetModal", () => {
       },
     });
 
-    fireEvent.change(screen.getByPlaceholderText("Untitled"), {
+    fireEvent.change(screen.getByPlaceholderText("Snippet title"), {
       target: { value: "Modal snippet" },
     });
 

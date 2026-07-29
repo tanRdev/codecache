@@ -5,12 +5,33 @@ export const ALLOWED_ATTACHMENT_MIME_TYPES = [
   "image/png",
   "image/gif",
   "image/webp",
+  "image/svg+xml",
   "application/pdf",
   "text/plain",
   "text/markdown",
   "text/csv",
   "application/json",
+  "text/html",
+  "text/css",
+  "text/javascript",
+  "application/javascript",
 ] as const;
+
+const INLINE_PREVIEW_MIME_TYPES = new Set<string>([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "application/pdf",
+  "text/plain",
+  "text/markdown",
+  "text/csv",
+  "application/json",
+]);
+
+export function canPreviewAttachmentInline(mimeType: string | null | undefined) {
+  return Boolean(mimeType && INLINE_PREVIEW_MIME_TYPES.has(mimeType));
+}
 
 export function validateAttachmentFile(file: { size: number; type: string }) {
   if (file.size > MAX_ATTACHMENT_FILE_SIZE) {

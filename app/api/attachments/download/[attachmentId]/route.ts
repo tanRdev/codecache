@@ -3,13 +3,15 @@ import { Effect } from "effect";
 import { CacheError } from "@/lib/core/errors";
 import { requireBrowserSessionContextEffect } from "@/lib/effect/next-auth";
 import { runApiRoute, tryApiPromise } from "@/lib/effect/api-routes";
+import { canPreviewAttachmentInline } from "@/lib/attachments/shared";
 import * as sqlite from "@/lib/storage/sqlite";
 
-function createContentDisposition(fileName: string) {
+function createContentDisposition(fileName: string, mimeType?: string | null) {
   // Strip CRLF and control characters to prevent header injection
   const safe = fileName.replace(/[\r\n]/g, "_").replace(/\p{Cc}/gu, "_");
   const encodedName = encodeURIComponent(safe);
-  return `attachment; filename="${safe}"; filename*=UTF-8''${encodedName}`;
+  const disposition = canPreviewAttachmentInline(mimeType) ? "inline" : "attachment";
+  return `${disposition}; filename="${safe}"; filename*=UTF-8''${encodedName}`;
 }
 
 export async function GET(
@@ -41,8 +43,12 @@ export async function GET(
         status: 200,
         headers: {
           "Content-Type": target.mimeType ?? "application/octet-stream",
-          "Content-Disposition": createContentDisposition(target.fileName ?? "download"),
+          "Content-Disposition": createContentDisposition(
+            target.fileName ?? "download",
+            target.mimeType,
+          ),
           "Cache-Control": "private, no-store",
+          "X-Content-Type-Options": "nosniff",
         },
       });
     },

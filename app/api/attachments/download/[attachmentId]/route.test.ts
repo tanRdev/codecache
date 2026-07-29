@@ -43,7 +43,28 @@ describe("local attachment download route", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("text/markdown");
+    expect(response.headers.get("content-disposition")).toContain("inline");
     expect(response.headers.get("content-disposition")).toContain("notes.md");
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     await expect(response.text()).resolves.toBe("hello");
+  });
+
+  it("forces active document formats to download", async () => {
+    mockSqliteModule.getAttachmentDownloadTarget.mockResolvedValue({
+      kind: "blob",
+      fileName: "demo.html",
+      mimeType: "text/html",
+      contentBase64: Buffer.from("<h1>demo</h1>").toString("base64"),
+    });
+
+    const { GET } = await import("@/app/api/attachments/download/[attachmentId]/route");
+    const request = new NextRequest("http://localhost:3000/api/attachments/download/attachment-1");
+
+    const response = await GET(request, {
+      params: Promise.resolve({ attachmentId: "attachment-1" }),
+    });
+
+    expect(response.headers.get("content-disposition")).toContain("attachment");
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
   });
 });

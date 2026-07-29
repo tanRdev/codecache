@@ -4,13 +4,13 @@ import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 import { getMonacoLanguage } from "./snippet-config";
 
-const editorBackground = "#08090C";
-const editorSurface = "#101010";
-const editorLineHighlight = "#171717";
+const editorBackground = "#0A0A0B";
+const editorSurface = "#171719";
+const editorLineHighlight = "#202023";
 const editorBorder = "rgba(255,255,255,0.12)";
-const editorSecondaryText = "#CBCBCB";
-const editorTertiaryText = "#8B8B8B";
-const editorAccent = "#FF7A1A";
+const editorSecondaryText = "#CACACE";
+const editorTertiaryText = "#8E8E96";
+const editorAccent = "#E8FF65";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -111,30 +111,30 @@ export function defineOpusMonacoTheme(monaco: MonacoThemeApi) {
     base: "vs-dark",
     inherit: true,
     rules: [
-      { token: "comment", foreground: "8B8B8B", fontStyle: "italic" },
-      { token: "keyword", foreground: "FF7A1A" },
-      { token: "string", foreground: "A5D6FF" },
-      { token: "number", foreground: "FBBF24" },
-      { token: "type", foreground: "4ADE80" },
+      { token: "comment", foreground: "8E8E96", fontStyle: "italic" },
+      { token: "keyword", foreground: "E8FF65" },
+      { token: "string", foreground: "A7D7C5" },
+      { token: "number", foreground: "D6C98F" },
+        { token: "type", foreground: "D4D4D8" },
     ],
     colors: {
       "editor.background": editorBackground,
-      "editor.foreground": "#F5F5F5",
+      "editor.foreground": "#FAFAFA",
       "editorLineNumber.foreground": "#5E5E5E",
       "editorLineNumber.activeForeground": editorSecondaryText,
       "editor.lineHighlightBackground": editorLineHighlight,
       "editorLineNumber.dimmedForeground": editorTertiaryText,
       "editorIndentGuide.background1": "rgba(255,255,255,0.05)",
       "editorIndentGuide.activeBackground1": "rgba(255,255,255,0.10)",
-      "editor.selectionBackground": "rgba(255,122,26,0.16)",
-      "editor.inactiveSelectionBackground": "rgba(107,138,174,0.16)",
+      "editor.selectionBackground": "rgba(232,255,101,0.16)",
+      "editor.inactiveSelectionBackground": "rgba(255,255,255,0.10)",
       "editorCursor.foreground": editorAccent,
       "editorWhitespace.foreground": "rgba(255,255,255,0.07)",
       "editorWidget.background": editorSurface,
       "editorWidget.border": editorBorder,
       "editorSuggestWidget.background": editorSurface,
       "editorSuggestWidget.border": editorBorder,
-      "editorSuggestWidget.selectedBackground": "rgba(255,122,26,0.16)",
+      "editorSuggestWidget.selectedBackground": "rgba(232,255,101,0.16)",
       "editorHoverWidget.background": editorSurface,
       "editorHoverWidget.border": editorBorder,
       "scrollbarSlider.background": "rgba(255,255,255,0.10)",

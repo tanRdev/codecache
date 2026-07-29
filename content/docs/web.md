@@ -9,16 +9,15 @@ The web interface is organized into several main areas:
 ### Navigation Structure
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  Cache        Dashboard  Snippets  Settings  [Profile] │  ← Header
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  [Sidebar]              │  Main Content Area            │
-│  - Quick filters        │                               │
-│  - Tags                 │                               │
-│  - Recent               │                               │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
+┌──────────────┬──────────────────────────────────────────┐
+│ Cache        │ Library                         [+ New]  │
+│ Dashboard    │ Search snippets...                       │
+│              │ Tag filters                              │
+│              │                                          │
+│              │ Snippet table                            │
+│ SQLite ready │                                          │
+│ Sign out     │                                          │
+└──────────────┴──────────────────────────────────────────┘
 ```
 
 ### Key Pages
@@ -27,18 +26,19 @@ The web interface is organized into several main areas:
 |------|-----|---------|
 | **Dashboard** | `/dashboard` | Browse, search, and filter all snippets |
 | **Snippet Detail** | `/snippets/:id` | View, edit, and organize a specific snippet |
-| **Settings** | `/settings` | Configure storage and account access |
 | **Documentation** | `/docs` | Built-in documentation (you are here) |
+| **Owner setup** | `/setup` | Initialize the single owner account |
+| **Sign in** | `/sign-in` | Open an existing local or self-hosted library |
 
 ### Design Principles
 
 The web interface follows these design principles:
 
-- **Dark-first aesthetic**: Monospace typography, dark surfaces, orange accents
-- **Developer-centric**: Keyboard shortcuts, syntax highlighting, code-first layout
+- **Dark-first aesthetic**: Ink-black surfaces, restrained typography, signal-yellow accents
+- **Developer-centric**: Syntax highlighting and a code-first layout
 - **Efficiency**: Minimal clicks to accomplish tasks
 - **Context preservation**: Edit without losing your place
-- **Instant feedback**: Real-time search, immediate saves
+- **Instant feedback**: Debounced search and clear save states
 
 ## Accessing the Web Interface
 
@@ -85,38 +85,30 @@ Use the search bar at the top:
 
 - **Text search**: Type to search titles, content, and tags
 - **Tag filter**: Click tags to filter by category
-- **Language filter**: Filter by programming language
+- **Language matching**: Search by a language name such as `typescript`
 
 ### 3. Create a Snippet
 
-Click **"New Snippet"** or press `Ctrl+N`:
+Click **New**:
 
 1. Enter a title
 2. Paste or type your code
-3. Add tags (comma-separated)
-4. Add optional notes
+3. Add optional description, tags, and notes
+4. Queue optional attachments
 5. Click **Save**
 
 ### 4. Edit a Snippet
 
 Click any snippet to open the detail view:
 
-- Edit title inline by clicking it
-- Click the code editor to modify content
+- Select **Edit**
+- Update the title, description, language, or code
 - Add or remove tags
 - Update notes
-- Changes save automatically
+- Select **Save changes** when ready
 
-## Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl/Cmd + K` | Open command palette / search |
-| `Ctrl/Cmd + N` | Create new snippet |
-| `Ctrl/Cmd + S` | Save current snippet |
-| `Ctrl/Cmd + F` | Focus search |
-| `Esc` | Close modals, cancel editing |
-| `?` | Show keyboard shortcuts help |
+Dialogs support the standard `Esc` close behavior. Tag inputs accept `Enter` to
+commit the current tag.
 
 ## Documentation Sections
 
@@ -124,4 +116,4 @@ Explore detailed web interface documentation:
 
 - [Dashboard](/docs/web/dashboard) – Browse, search, and organize snippets
 - [Snippets](/docs/web/snippets) – Create, edit, and manage individual snippets
-- [Settings](/docs/web/settings) – Configure storage and account preferences
+- [Configuration](/docs/web/settings) – See which settings are managed outside the app

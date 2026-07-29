@@ -26,7 +26,15 @@ const sectionIcons: Record<string, React.ComponentType<{ className?: string }>> 
   features: Stack,
 };
 
-function NavSection({ section, isActive }: { section: DocSection; isActive: boolean }) {
+function NavSection({
+  section,
+  isActive,
+  onNavigate,
+}: {
+  section: DocSection;
+  isActive: boolean;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const Icon = sectionIcons[section.slug] || FileText;
   const hasItems = section.items && section.items.length > 0;
@@ -37,6 +45,7 @@ function NavSection({ section, isActive }: { section: DocSection; isActive: bool
       <div className="flex items-center justify-between px-2 py-1">
         <Link
           href={`/docs/${section.slug}`}
+          onClick={onNavigate}
           className={cn(
             "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium transition-colors",
             pathname === `/docs/${section.slug}`
@@ -64,6 +73,7 @@ function NavSection({ section, isActive }: { section: DocSection; isActive: bool
               <Link
                 key={item.slug}
                 href={`/docs/${item.slug}`}
+                onClick={onNavigate}
                 className={cn(
                   "rounded-md px-2 py-1.5 text-sm transition-colors",
                   pathname === `/docs/${item.slug}`
@@ -81,7 +91,7 @@ function NavSection({ section, isActive }: { section: DocSection; isActive: bool
   );
 }
 
-export function DocsSidebarShell() {
+export function DocsSidebarShell({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
@@ -105,6 +115,7 @@ export function DocsSidebarShell() {
               key={section.slug}
               section={section}
               isActive={pathname?.startsWith(`/docs/${section.slug}`)}
+              onNavigate={onNavigate}
             />
           ))}
         </div>
@@ -113,6 +124,7 @@ export function DocsSidebarShell() {
       <div className="space-y-3 border-t border-border p-4">
         <Link
           href="/"
+          onClick={onNavigate}
           className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <span>← Back to Cache</span>

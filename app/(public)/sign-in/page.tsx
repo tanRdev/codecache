@@ -9,12 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getAuthSetup, signIn, signInWithSetupToken } from "@/app/actions/auth";
 import { isMarketingDeployment } from "@/lib/deployment-mode";
-
-const SAFE_PATH = /^\/[a-zA-Z0-9\-._~!$&'()*+,;=:@?#%]*$/;
-
-function getSafeRedirectTarget(callbackUrl: string): string {
-  return SAFE_PATH.test(callbackUrl) && !callbackUrl.startsWith("//") ? callbackUrl : "/dashboard";
-}
+import { getSafeRedirectTarget } from "@/lib/navigation";
 
 export default function SignInPage() {
   return (

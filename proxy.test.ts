@@ -38,12 +38,68 @@ describe("proxy", () => {
     );
   });
 
+  it("does not treat similarly prefixed or unimplemented routes as protected", async () => {
+    mockAuth.mockResolvedValue(null);
+
+    const prefixedResponse = await proxy(
+      new NextRequest("http://localhost:3000/dashboard-preview"),
+    );
+    const settingsResponse = await proxy(
+      new NextRequest("http://localhost:3000/settings"),
+    );
+
+    expect(prefixedResponse.headers.get("x-middleware-next")).toBe("1");
+    expect(settingsResponse.headers.get("x-middleware-next")).toBe("1");
+  });
+
   it("redirects authenticated users away from sign-in", async () => {
     mockAuth.mockResolvedValue({ user: { id: "user-1" } });
 
     const response = await proxy(new NextRequest("http://localhost:3000/sign-in?callbackUrl=https://evil.example/steal"));
 
     expect(response.headers.get("location")).toBe("http://localhost:3000/dashboard");
+  });
+
+  it("preserves safe nested callbacks for authenticated users", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+
+    const response = await proxy(
+      new NextRequest(
+        "http://localhost:3000/sign-in?callbackUrl=%2Fsnippets%2Fsnippet-1%3Fview%3Dfull",
+      ),
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3000/snippets/snippet-1?view=full",
+    );
+  });
+
+  it("rejects scheme-relative callbacks for authenticated users", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+
+    const response = await proxy(
+      new NextRequest(
+        "http://localhost:3000/sign-in?callbackUrl=%2F%2Fevil.example",
+      ),
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3000/dashboard",
+    );
+  });
+
+  it("rejects callbacks that normalize into scheme-relative URLs", async () => {
+    mockAuth.mockResolvedValue({ user: { id: "user-1" } });
+
+    const response = await proxy(
+      new NextRequest(
+        "http://localhost:3000/sign-in?callbackUrl=%2F..%2F%2Fevil.example",
+      ),
+    );
+
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3000/dashboard",
+    );
   });
 
   it("redirects application routes to installation docs in marketing mode", async () => {

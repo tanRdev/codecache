@@ -93,6 +93,11 @@ export function verifyFileContent(
     "text/markdown",
     "text/csv",
     "application/json",
+    "image/svg+xml",
+    "text/html",
+    "text/css",
+    "text/javascript",
+    "application/javascript",
   ];
 
   if (textTypes.includes(declaredMime)) {

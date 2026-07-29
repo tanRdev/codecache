@@ -33,6 +33,7 @@ export async function GET(
             "Content-Type": target.mimeType ?? "application/octet-stream",
             "Content-Disposition": createContentDisposition(target.fileName ?? "download"),
             "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
           },
         });
       }

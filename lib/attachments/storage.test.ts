@@ -18,6 +18,10 @@ describe("attachment storage helpers", () => {
 
   it("validates allowed attachment metadata", () => {
     expect(validateFile({ size: 128, type: "text/plain" })).toBeNull();
+    expect(validateFile({ size: 128, type: "image/svg+xml" })).toBeNull();
+    expect(validateFile({ size: 128, type: "text/html" })).toBeNull();
+    expect(validateFile({ size: 128, type: "text/css" })).toBeNull();
+    expect(validateFile({ size: 128, type: "application/javascript" })).toBeNull();
     expect(validateFile({ size: ATTACHMENT_STORAGE_CONSTANTS.MAX_FILE_SIZE + 1, type: "text/plain" }))
       .toMatch(/File size exceeds 5MB limit/i);
     expect(validateFile({ size: 128, type: "application/x-msdownload" }))

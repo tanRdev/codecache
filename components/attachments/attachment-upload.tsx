@@ -21,45 +21,19 @@ import {
   saveAttachmentMetadata,
 } from "@/app/actions/attachments";
 import type { Attachment } from "@/lib/db";
+import {
+  ALLOWED_ATTACHMENT_MIME_TYPES,
+  canPreviewAttachmentInline,
+  validateAttachmentFile,
+} from "@/lib/attachments/shared";
 import { cn } from "@/lib/utils";
-import { ArrowSquareOut, CircleNotch, FileText, Image as ImageIcon, Trash, UploadSimple } from "@phosphor-icons/react";
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
-const ALLOWED_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-  "image/svg+xml",
-  "application/pdf",
-  "text/plain",
-  "text/markdown",
-  "text/csv",
-  "application/json",
-  "text/html",
-  "text/css",
-  "text/javascript",
-  "application/javascript",
-];
+import { ArrowDown, ArrowSquareOut, CircleNotch, FileText, Image as ImageIcon, Trash, UploadSimple } from "@phosphor-icons/react";
 
 const shellClassName =
   "rounded-lg border border-border-subtle bg-card p-5 text-foreground sm:p-6";
 
 const rowClassName =
   "rounded-xl border border-border-subtle bg-surface-primary px-4 py-3 transition-colors duration-150 ease-out hover:border-border hover:bg-surface-secondary";
-
-function validateFile(file: File) {
-  if (file.size > MAX_FILE_SIZE) {
-    return `File size exceeds 5MB limit. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB.`;
-  }
-
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    return `File type "${file.type}" is not allowed. Allowed types: images, PDFs, text files, and code files.`;
-  }
-
-  return null;
-}
 
 interface AttachmentUploadProps {
   onUploadComplete?: () => void;
@@ -87,7 +61,7 @@ export function AttachmentUpload({ snippetId, onUploadComplete }: AttachmentUplo
     setError(null);
     setUploadProgress("Validating file...");
 
-    const validationError = validateFile(file);
+    const validationError = validateAttachmentFile(file);
     if (validationError) {
       setError(validationError);
       setUploadProgress("");
@@ -167,7 +141,7 @@ export function AttachmentUpload({ snippetId, onUploadComplete }: AttachmentUplo
       <input
         ref={fileInputRef}
         type="file"
-        accept={ALLOWED_TYPES.join(",")}
+        accept={ALLOWED_ATTACHMENT_MIME_TYPES.join(",")}
         onChange={handleFileSelect}
         className="hidden"
         disabled={isUploading}
@@ -227,26 +201,15 @@ function createImagePreviewRequest(attachmentId: string) {
     .catch(() => null);
 }
 
+function getAttachmentViewUrl(attachmentId: string) {
+  return `/api/attachments/download/${encodeURIComponent(attachmentId)}`;
+}
+
 function ImagePreview({ attachment, onDelete }: { attachment: Attachment; onDelete: (id: string) => void }) {
-  const [isViewing, setIsViewing] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [previewRequest] = useState(() => createImagePreviewRequest(attachment.id));
-
-  const handleViewImage = async () => {
-    setIsViewing(true);
-
-    try {
-      const result = await getAttachmentDownloadUrl(attachment.id);
-      if (result.success && result.url) {
-        window.open(result.url, "_blank", "noopener,noreferrer");
-      }
-    } catch (downloadError) {
-      console.error("Error getting image URL:", downloadError);
-    } finally {
-      setIsViewing(false);
-    }
-  };
+  const canPreview = canPreviewAttachmentInline(attachment.mime_type);
 
   const handleDelete = () => {
     startTransition(async () => {
@@ -271,20 +234,20 @@ function ImagePreview({ attachment, onDelete }: { attachment: Attachment; onDele
           <ImagePreviewMedia attachment={attachment} previewRequest={previewRequest} />
         </Suspense>
 
-        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition-opacity duration-150 ease-out group-hover:opacity-100">
-          <button
-            type="button"
-            onClick={handleViewImage}
-            disabled={isViewing}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/90 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-black transition-colors duration-150 ease-out hover:bg-white disabled:pointer-events-none disabled:opacity-50"
+        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/35 opacity-100 transition-[background-color,opacity] duration-150 ease-out [@media(hover:hover)]:bg-black/60 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-focus-within:opacity-100 [@media(hover:hover)]:group-hover:opacity-100">
+          <a
+            href={getAttachmentViewUrl(attachment.id)}
+            target={canPreview ? "_blank" : undefined}
+            rel={canPreview ? "noopener noreferrer" : undefined}
+            className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/90 px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-black transition-colors duration-150 ease-out hover:bg-white"
           >
-            {isViewing ? (
-              <CircleNotch className="size-3.5 animate-spin" weight="bold" aria-hidden="true" />
-            ) : (
+            {canPreview ? (
               <ArrowSquareOut className="size-3.5" weight="bold" aria-hidden="true" />
+            ) : (
+              <ArrowDown className="size-3.5" weight="bold" aria-hidden="true" />
             )}
-            View
-          </button>
+            {canPreview ? "View" : "Download"}
+          </a>
 
           <DeleteAttachmentButton
             attachment={attachment}
@@ -332,24 +295,9 @@ function ImagePreviewMedia({
 }
 
 function FileCard({ attachment, onDelete }: { attachment: Attachment; onDelete: (id: string) => void }) {
-  const [isLoading, setIsLoading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-
-  const handleViewFile = async () => {
-    setIsLoading(true);
-
-    try {
-      const result = await getAttachmentDownloadUrl(attachment.id);
-      if (result.success && result.url) {
-        window.open(result.url, "_blank", "noopener,noreferrer");
-      }
-    } catch (downloadError) {
-      console.error("Error getting download URL:", downloadError);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const canPreview = canPreviewAttachmentInline(attachment.mime_type);
 
   const handleDelete = () => {
     startTransition(async () => {
@@ -377,15 +325,19 @@ function FileCard({ attachment, onDelete }: { attachment: Attachment; onDelete: 
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        <button
-          type="button"
-          onClick={handleViewFile}
-          disabled={isLoading}
-          className="inline-flex items-center gap-2 rounded-lg border border-border-subtle px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors duration-150 ease-out hover:bg-surface-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:pointer-events-none disabled:opacity-50"
+        <a
+          href={getAttachmentViewUrl(attachment.id)}
+          target={canPreview ? "_blank" : undefined}
+          rel={canPreview ? "noopener noreferrer" : undefined}
+          className="inline-flex items-center gap-2 rounded-lg border border-border-subtle px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground transition-colors duration-150 ease-out hover:bg-surface-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
         >
-          {isLoading ? <CircleNotch className="size-3.5 animate-spin" weight="bold" aria-hidden="true" /> : <ArrowSquareOut className="size-3.5" weight="bold" aria-hidden="true" />}
-          View
-        </button>
+          {canPreview ? (
+            <ArrowSquareOut className="size-3.5" weight="bold" aria-hidden="true" />
+          ) : (
+            <ArrowDown className="size-3.5" weight="bold" aria-hidden="true" />
+          )}
+          {canPreview ? "View" : "Download"}
+        </a>
 
         <DeleteAttachmentButton
           attachment={attachment}
@@ -489,7 +441,7 @@ export function AttachmentList({ attachments }: AttachmentListProps) {
         <p className="text-[11px] uppercase tracking-[0.24em] text-primary">Stored attachments</p>
         <h2 className="text-xl font-semibold tracking-tight text-foreground">Attachment inventory</h2>
         <p className="text-sm leading-6 text-muted-foreground">
-          Review uploaded files, open them in a new tab, or remove them from the snippet.
+          Review uploaded files, view safe formats, download active formats, or remove them.
         </p>
       </div>
 

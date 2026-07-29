@@ -1,6 +1,7 @@
 "use client";
 
 import { List } from "@phosphor-icons/react";
+import { useState } from "react";
 import { DocsSidebar } from "@/components/docs/docs-sidebar";
 import {
   Sheet,
@@ -18,6 +19,8 @@ export default function DocsLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [navigationOpen, setNavigationOpen] = useState(false);
+
   return (
     <TooltipProvider>
       <div className="flex min-h-screen flex-col lg:flex-row">
@@ -34,7 +37,7 @@ export default function DocsLayout({
               <p className="text-sm text-foreground">Guides, setup, and API reference</p>
             </div>
 
-            <Sheet>
+            <Sheet open={navigationOpen} onOpenChange={setNavigationOpen}>
               <SheetTrigger
                 render={
                   <Button
@@ -54,7 +57,7 @@ export default function DocsLayout({
                   <SheetTitle>Documentation navigation</SheetTitle>
                   <SheetDescription>Browse guides, reference pages, and feature documentation.</SheetDescription>
                 </SheetHeader>
-                <DocsSidebar />
+                <DocsSidebar onNavigate={() => setNavigationOpen(false)} />
               </SheetContent>
             </Sheet>
           </div>

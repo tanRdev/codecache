@@ -52,7 +52,7 @@ export const docNavigation: DocSection[] = [
       { title: "Overview", slug: "web", description: "How the web app is split between public and authenticated routes" },
       { title: "Dashboard", slug: "web/dashboard", description: "Browse, search, and open snippets" },
       { title: "Snippets", slug: "web/snippets", description: "Create, edit, attach files, and delete snippets" },
-      { title: "Settings", slug: "web/settings", description: "What is configurable today and what still lives in env vars" },
+      { title: "Configuration", slug: "web/settings", description: "What is configurable today and what lives in environment variables" },
     ],
   },
   {

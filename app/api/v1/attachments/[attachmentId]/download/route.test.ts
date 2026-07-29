@@ -37,6 +37,7 @@ describe("attachment download API route", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("text/markdown");
     expect(response.headers.get("content-disposition")).toContain("notes.md");
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff");
     await expect(response.text()).resolves.toBe("hello");
   });
 

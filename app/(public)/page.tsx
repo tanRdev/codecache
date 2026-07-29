@@ -50,7 +50,7 @@ const previewSnippets = [
 
 function ProductPreview() {
   return (
-    <div className="overflow-hidden rounded-xl border border-border-default bg-[#09090a] shadow-[0_32px_100px_rgba(0,0,0,0.42)]">
+    <div className="min-w-0 overflow-hidden rounded-xl border border-border-default bg-[#09090a] shadow-[0_32px_100px_rgba(0,0,0,0.42)]">
       <div className="flex h-11 items-center justify-between border-b border-border-subtle px-4">
         <div className="flex items-center gap-2">
           <span className="size-2.5 rounded-full bg-[#ff6b5f]" />
@@ -77,9 +77,9 @@ function ProductPreview() {
           </div>
         </aside>
 
-        <div className="p-4 sm:p-6">
+        <div className="min-w-0 p-4 sm:p-6">
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
+            <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-[0.2em] text-text-tertiary">
                 Local library
               </p>
@@ -105,9 +105,9 @@ function ProductPreview() {
                 className="rounded-md border border-border-subtle bg-surface-primary p-3.5"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-[12px] font-medium text-foreground">{snippet.title}</p>
-                    <p className="mt-1 font-mono text-[10px] text-text-tertiary">
+                  <div className="min-w-0">
+                    <p className="truncate text-[12px] font-medium text-foreground">{snippet.title}</p>
+                    <p className="mt-1 truncate font-mono text-[10px] text-text-tertiary">
                       {index === 0 ? "export function useLocalStorage<T>(key: string) {" : "Reusable implementation with notes"}
                     </p>
                   </div>
@@ -176,19 +176,20 @@ export default function LandingPage() {
 
       <main id="main-content">
         <section className="relative border-b border-border-subtle">
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-[radial-gradient(circle_at_72%_28%,rgba(244,120,52,0.11),transparent_32%)]"
-          />
-          <div className="relative mx-auto grid max-w-6xl gap-14 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:gap-16">
-            <div>
+          <div className="relative mx-auto grid min-w-0 max-w-6xl gap-14 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:gap-16">
+            <div className="min-w-0">
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-border-default bg-surface-primary px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-text-secondary">
                 <span className="size-1.5 rounded-full bg-primary" />
                 Open source · local first
               </div>
-              <h1 className="max-w-[680px] text-[clamp(2.8rem,8vw,4.8rem)] font-semibold leading-[0.98] tracking-[-0.055em]">
+              <h1
+                aria-label="Your personal code library, on your machine."
+                className="max-w-[680px] text-[clamp(2.45rem,11vw,4.8rem)] font-semibold leading-[0.98] tracking-[-0.052em]"
+              >
                 Your personal code library,{" "}
-                <span className="text-primary">on your machine.</span>
+                <span>
+                  on your machine<span className="text-primary">.</span>
+                </span>
               </h1>
               <p className="mt-6 max-w-xl text-[16px] leading-7 text-text-secondary sm:text-[17px]">
                 Save the code worth reusing, find it without breaking flow, and keep every
@@ -222,7 +223,7 @@ export default function LandingPage() {
               </ul>
             </div>
 
-            <div className="lg:translate-x-5">
+            <div className="min-w-0 lg:translate-x-5">
               <ProductPreview />
             </div>
           </div>

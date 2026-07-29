@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SnippetDetail } from "./snippet-detail";
 import type { Attachment } from "@/lib/db";
@@ -71,5 +71,24 @@ describe("SnippetDetail", () => {
     expect(
       screen.queryByText(/add attachments here to keep screenshots/i)
     ).not.toBeInTheDocument();
+  });
+
+  it("uses product-facing copy in edit mode", () => {
+    render(
+      <SnippetDetail
+        snippet={snippet}
+        storageBackend="sqlite"
+        initialAttachments={attachments}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+
+    expect(
+      screen.getByText(
+        "Changes update this snippet across the browser, CLI, and API.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/refresh flow/i)).not.toBeInTheDocument();
   });
 });

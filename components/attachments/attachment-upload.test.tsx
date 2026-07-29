@@ -11,9 +11,6 @@ vi.mock("@/app/actions/attachments", () => ({
   getAttachmentDownloadUrl: vi.fn(),
 }));
 
-const mockWindowOpen = vi.fn();
-vi.stubGlobal("open", mockWindowOpen);
-
 import {
   deleteAttachment,
   getAttachmentDownloadUrl,
@@ -47,6 +44,14 @@ describe("AttachmentList", () => {
     file_size: 1024 * 500,
     mime_type: "application/pdf",
     created_at: "2024-01-01T00:00:00Z",
+  };
+
+  const mockHtmlAttachment: Attachment = {
+    ...mockPdfAttachment,
+    id: "html-1",
+    storage_key: "users/user-1/snippets/snippet-1/html-1-demo.html",
+    file_name: "demo.html",
+    mime_type: "text/html",
   };
 
   beforeEach(() => {
@@ -126,28 +131,32 @@ describe("AttachmentList", () => {
       expect(screen.getByText("PDF · 500.0 KB")).toBeInTheDocument();
     });
 
-    it("calls getAttachmentDownloadUrl when View is clicked", async () => {
+    it("links directly to the authenticated download route", () => {
       render(<AttachmentList attachments={[mockPdfAttachment]} />);
 
-      fireEvent.click(screen.getByRole("button", { name: "View" }));
-
-      await waitFor(() => {
-        expect(mockGetAttachmentDownloadUrl).toHaveBeenCalledWith(mockPdfAttachment.id);
-      });
+      expect(screen.getByRole("link", { name: "View" })).toHaveAttribute(
+        "target",
+        "_blank",
+      );
+      expect(screen.getByRole("link", { name: "View" })).toHaveAttribute(
+        "href",
+        "/api/attachments/download/pdf-1",
+      );
+      expect(screen.getByRole("link", { name: "View" })).toHaveAttribute(
+        "rel",
+        "noopener noreferrer",
+      );
     });
 
-    it("opens file in new tab on View click", async () => {
-      render(<AttachmentList attachments={[mockPdfAttachment]} />);
+    it("labels active document formats as downloads", () => {
+      render(<AttachmentList attachments={[mockHtmlAttachment]} />);
 
-      fireEvent.click(screen.getByRole("button", { name: "View" }));
-
-      await waitFor(() => {
-        expect(mockWindowOpen).toHaveBeenCalledWith(
-          "https://example.com/signed-url",
-          "_blank",
-          "noopener,noreferrer",
-        );
-      });
+      const downloadLink = screen.getByRole("link", { name: "Download" });
+      expect(downloadLink).toHaveAttribute(
+        "href",
+        "/api/attachments/download/html-1",
+      );
+      expect(downloadLink).not.toHaveAttribute("target");
     });
   });
 

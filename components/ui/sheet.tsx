@@ -28,7 +28,7 @@ function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
       <SheetPrimitive.Backdrop
         data-slot="sheet-overlay"
         className={cn(
-          "cn-sheet-overlay fixed inset-0 z-50 overscroll-contain transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0",
+          "cn-sheet-overlay fixed inset-0 z-50 bg-black/70 backdrop-blur-[2px] overscroll-contain transition-opacity duration-200 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0",
           className
         )}
         {...props}
@@ -53,7 +53,7 @@ function SheetContent({
         data-slot="sheet-content"
         data-side={side}
         className={cn(
-          "cn-sheet-content overscroll-contain data-ending-style:opacity-0 data-starting-style:opacity-0 data-[side=bottom]:data-ending-style:translate-y-[2.5rem] data-[side=bottom]:data-starting-style:translate-y-[2.5rem] data-[side=left]:data-ending-style:translate-x-[-2.5rem] data-[side=left]:data-starting-style:translate-x-[-2.5rem] data-[side=right]:data-ending-style:translate-x-[2.5rem] data-[side=right]:data-starting-style:translate-x-[2.5rem] data-[side=top]:data-ending-style:translate-y-[-2.5rem] data-[side=top]:data-starting-style:translate-y-[-2.5rem]",
+          "cn-sheet-content fixed z-50 flex max-h-dvh flex-col overflow-y-auto bg-background text-foreground shadow-2xl outline-none overscroll-contain transition-[opacity,transform] duration-200 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0 data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:data-ending-style:translate-y-[2.5rem] data-[side=bottom]:data-starting-style:translate-y-[2.5rem] data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-dvh data-[side=left]:data-ending-style:-translate-x-10 data-[side=left]:data-starting-style:-translate-x-10 data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-dvh data-[side=right]:data-ending-style:translate-x-10 data-[side=right]:data-starting-style:translate-x-10 data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:data-ending-style:-translate-y-10 data-[side=top]:data-starting-style:-translate-y-10",
           className
         )}
         {...props}
@@ -65,7 +65,7 @@ function SheetContent({
             render={
               <Button
                 variant="ghost"
-                className="cn-sheet-close"
+                className="cn-sheet-close absolute top-3 right-3 z-10"
                 size="icon-sm"
               />
             }

@@ -188,7 +188,7 @@ export function CreateSnippetModal({ open, onOpenChange }: CreateSnippetModalPro
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-slim px-6 py-6 sm:px-8 sm:py-8">
+      <DialogContent className="max-h-[calc(100dvh-1.5rem)] w-[calc(100vw-1.5rem)] max-w-4xl overflow-y-auto px-4 py-5 scrollbar-slim sm:max-h-[90vh] sm:w-[90vw] sm:px-8 sm:py-8">
         <DialogTitle className="sr-only">Create snippet</DialogTitle>
         {errors.general && (
           <div
@@ -200,7 +200,7 @@ export function CreateSnippetModal({ open, onOpenChange }: CreateSnippetModalPro
         )}
 
         <DialogHeader className="pb-2">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3 pr-10 sm:flex-row sm:items-center">
             <div className="flex-1 space-y-1">
               {/* Notion-style editable title */}
               <input
@@ -212,13 +212,13 @@ export function CreateSnippetModal({ open, onOpenChange }: CreateSnippetModalPro
                     setErrors((e) => ({ ...e, title: undefined }));
                   }
                 }}
-                placeholder="Untitled"
+                placeholder="Snippet title"
                 className="w-full bg-transparent text-xl font-semibold tracking-tight text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:bg-muted/30 hover:bg-muted/20 rounded px-1 -mx-1 transition-colors cursor-text"
               />
             </div>
             {/* Language dropdown in header */}
             <Select value={language} onValueChange={(value) => setLanguage(value ?? "plaintext")}>
-              <SelectTrigger className="h-7 w-auto min-w-[100px] bg-transparent border border-border-subtle px-2 py-0 text-xs hover:bg-muted/30 rounded focus:ring-0 focus:ring-offset-0">
+              <SelectTrigger aria-label="Snippet language" className="h-8 w-fit min-w-[112px] rounded border border-border-subtle bg-transparent px-2 py-0 text-xs hover:bg-muted/30 focus:ring-0 focus:ring-offset-0">
                 <span className="text-xs">{getSnippetLanguageLabel(language)}</span>
               </SelectTrigger>
               <SelectContent>
@@ -268,6 +268,7 @@ export function CreateSnippetModal({ open, onOpenChange }: CreateSnippetModalPro
             {isAddingTag ? (
               <Input
                 ref={tagInputRef}
+                aria-label="New snippet tag"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleTagKeyDown}
@@ -300,7 +301,7 @@ export function CreateSnippetModal({ open, onOpenChange }: CreateSnippetModalPro
               onChange={setCode}
               language={language}
               placeholder="Paste your code here..."
-              height={300}
+              height="clamp(220px, 36dvh, 300px)"
             />
             {errors.code && (
               <p className="text-[11px] text-destructive">{errors.code}</p>
@@ -352,7 +353,7 @@ export function CreateSnippetModal({ open, onOpenChange }: CreateSnippetModalPro
           </div>
 
           {/* Actions - bottom right */}
-          <div className="flex justify-end items-center gap-1 pt-2">
+          <div className="sticky -bottom-5 z-10 -mx-4 flex items-center justify-end gap-2 border-t border-border-subtle bg-surface-secondary/95 px-4 py-4 backdrop-blur sm:-bottom-8 sm:-mx-8 sm:px-8">
             <Button
               variant="ghost"
               size="sm"

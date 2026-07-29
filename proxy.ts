@@ -1,12 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { isMarketingDeployment } from "@/lib/deployment-mode";
+import { getSafeRedirectTarget } from "@/lib/navigation";
 
 const BYPASS_PREFIXES = ["/_next", "/api"];
 const BYPASS_EXACT = new Set(["/favicon.ico", "/icon.svg", "/robots.txt", "/sitemap.xml"]);
 const STATIC_FILE_PATTERN = /\.(?:svg|png|jpg|jpeg|gif|webp|ico)$/;
 
-const PROTECTED_ROUTES = ["/dashboard", "/snippets", "/settings", "/auth/cli"];
+const PROTECTED_ROUTES = ["/dashboard", "/snippets", "/auth/cli"];
 
 export function shouldBypassProxy(pathname: string) {
   if (BYPASS_EXACT.has(pathname)) {
@@ -21,7 +22,9 @@ export function shouldBypassProxy(pathname: string) {
 }
 
 function isProtectedRoute(pathname: string) {
-  return PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
+  return PROTECTED_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`),
+  );
 }
 
 function handleProtectedRoute(request: NextRequest, pathname: string, isAuthenticated: boolean) {
@@ -35,12 +38,9 @@ function handleProtectedRoute(request: NextRequest, pathname: string, isAuthenti
 
   if (isAuthenticated && pathname === "/sign-in") {
     const callbackUrl = request.nextUrl.searchParams.get("callbackUrl");
-
-    if (callbackUrl?.startsWith("/")) {
-      return NextResponse.redirect(new URL(callbackUrl, request.url));
-    }
-
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    return NextResponse.redirect(
+      new URL(getSafeRedirectTarget(callbackUrl), request.url),
+    );
   }
 
   return null;

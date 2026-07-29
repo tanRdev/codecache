@@ -36,6 +36,12 @@ describe("LandingPage", () => {
     expect(screen.queryByText(/Get Started Free/i)).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /^Sign in$/i })).toHaveAttribute("href", "/sign-in");
     expect(screen.getByText(/Your personal code library/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Your personal code library, on your machine.",
+      }),
+    ).toBeInTheDocument();
   });
 
   it("sends the primary marketing action to installation docs", () => {

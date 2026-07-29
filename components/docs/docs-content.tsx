@@ -12,6 +12,10 @@ interface DocsContentProps {
   content: string;
 }
 
+function omitLeadingPageHeading(content: string) {
+  return content.replace(/^\s*#\s+[^\r\n]+(?:\r?\n)+/, "");
+}
+
 function extractText(node: ReactNode): string {
   if (typeof node === "string" || typeof node === "number") {
     return String(node);
@@ -270,7 +274,7 @@ export function DocsContent({ content }: DocsContentProps) {
   return (
     <div className="docs-content">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-        {content}
+        {omitLeadingPageHeading(content)}
       </ReactMarkdown>
     </div>
   );

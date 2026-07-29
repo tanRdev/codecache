@@ -22,16 +22,6 @@ export default function OpenGraphImage() {
           width: "100%",
         }}
       >
-        <div
-          style={{
-            background: "radial-gradient(circle, rgba(244,120,52,.22), transparent 64%)",
-            height: 700,
-            position: "absolute",
-            right: -180,
-            top: -300,
-            width: 700,
-          }}
-        />
         <div style={{ display: "flex", flexDirection: "column", width: 980 }}>
           <div
             style={{
@@ -45,7 +35,7 @@ export default function OpenGraphImage() {
           >
             <div
               style={{
-                border: "2px solid #f47834",
+                border: "2px solid #e8ff65",
                 display: "flex",
                 height: 34,
                 transform: "rotate(30deg)",
@@ -67,7 +57,7 @@ export default function OpenGraphImage() {
             }}
           >
             <span>Your personal code library,</span>
-            <span style={{ color: "#f47834" }}>on your machine.</span>
+            <span style={{ color: "#e8ff65" }}>on your machine.</span>
           </div>
           <div
             style={{

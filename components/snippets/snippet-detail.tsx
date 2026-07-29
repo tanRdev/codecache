@@ -339,7 +339,7 @@ export function SnippetDetail({
 
           <div className="flex flex-col gap-3 border-t border-border-subtle pt-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-              Save keeps the existing update action and refresh flow.
+              Changes update this snippet across the browser, CLI, and API.
             </p>
             <div className="flex items-center gap-3">
               <Button variant="ghost" onClick={handleCancelEdit} disabled={isPending} className="h-11 px-4">
