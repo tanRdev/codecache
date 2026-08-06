@@ -140,6 +140,10 @@ npm run verify
 - Remote API tokens are redacted from human and structured CLI output.
 - The full web app binds data to a single configured owner.
 - Marketing deployments deny application and API routes.
+- Rate limiting is in-process and per instance: counters reset on restart and
+  are not shared between instances. Multi-instance deployments should enforce
+  limits at the load balancer or reverse proxy; the built-in limiter fails
+  closed on unexpected errors.
 - Back up both the SQLite database and attachments directory.
 
 See [SECURITY.md](./SECURITY.md) for vulnerability reporting and

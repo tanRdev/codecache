@@ -38,4 +38,12 @@ describe("drizzle", () => {
 
     expect(second).toBe(first);
   });
+
+  it("enables WAL journal mode, busy timeout, and foreign keys", () => {
+    const client = getSqliteClient();
+
+    expect(client.pragma("journal_mode", { simple: true })).toBe("wal");
+    expect(client.pragma("busy_timeout", { simple: true })).toBe(5000);
+    expect(client.pragma("foreign_keys", { simple: true })).toBe(1);
+  });
 });

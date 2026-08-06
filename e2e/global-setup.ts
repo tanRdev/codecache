@@ -2,6 +2,7 @@ import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";
 import { scryptSync } from "node:crypto";
 import Database from "better-sqlite3";
+import { initializeSqliteSchema } from "../lib/drizzle/migrate";
 
 const e2eRoot = path.join(process.cwd(), ".cache", "e2e");
 const databasePath = path.join(e2eRoot, "cache.sqlite");
@@ -20,43 +21,11 @@ export default async function globalSetup() {
   process.env.SQLITE_DATABASE_PATH = databasePath;
 
   const client = new Database(databasePath);
-  client.exec(`
-    PRAGMA foreign_keys = ON;
-    CREATE TABLE users (
-      id TEXT PRIMARY KEY,
-      email TEXT NOT NULL UNIQUE,
-      password_hash TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );
-    CREATE TABLE sessions (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      expires_at TEXT NOT NULL,
-      created_at TEXT NOT NULL
-    );
-    CREATE INDEX sessions_user_id_idx ON sessions(user_id);
-    CREATE TABLE snippets (
-      id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      title TEXT NOT NULL,
-      description TEXT,
-      notes TEXT,
-      language TEXT NOT NULL,
-      code TEXT NOT NULL,
-      search_text TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );
-    CREATE INDEX snippets_user_id_idx ON snippets(user_id);
-    CREATE TABLE snippet_tags (
-      id TEXT PRIMARY KEY,
-      snippet_id TEXT NOT NULL REFERENCES snippets(id) ON DELETE CASCADE,
-      tag TEXT NOT NULL,
-      created_at TEXT NOT NULL
-    );
-    CREATE INDEX snippet_tags_snippet_id_idx ON snippet_tags(snippet_id);
-  `);
+  // Schema comes from the shared migration module (lib/drizzle/migrate.ts) so
+  // e2e never drifts from the app's schema definition.
+  initializeSqliteSchema(client, {
+    migrationsFolder: path.join(process.cwd(), "drizzle"),
+  });
   const now = new Date().toISOString();
   const userId = "playwright-owner";
 

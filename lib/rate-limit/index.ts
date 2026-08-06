@@ -21,41 +21,58 @@ export interface RateLimitResult {
   resetAt: Date;
 }
 
+/**
+ * In-process, per-instance rate limiter. Counters live in this Node.js process
+ * only: they reset on restart and are not shared across instances, so
+ * multi-instance deployments must enforce limits at the load balancer or
+ * reverse proxy instead. The limiter fails closed: any unexpected error is
+ * treated as "limit exceeded".
+ */
 export function checkRateLimit(
   key: string,
   maxAttempts: number,
   windowMs: number
 ): RateLimitResult {
   const now = Date.now();
-  const entry = store.get(key);
 
-  if (!entry || now - entry.windowStart >= windowMs) {
-    store.set(key, { count: 1, windowStart: now });
+  try {
+    const entry = store.get(key);
+
+    if (!entry || now - entry.windowStart >= windowMs) {
+      store.set(key, { count: 1, windowStart: now });
+      return {
+        allowed: true,
+        remaining: maxAttempts - 1,
+        retryAfterSeconds: 0,
+        resetAt: new Date(now + windowMs),
+      };
+    }
+
+    if (entry.count >= maxAttempts) {
+      const retryAfterMs = windowMs - (now - entry.windowStart);
+      return {
+        allowed: false,
+        remaining: 0,
+        retryAfterSeconds: Math.ceil(retryAfterMs / 1000),
+        resetAt: new Date(entry.windowStart + windowMs),
+      };
+    }
+
+    entry.count += 1;
     return {
       allowed: true,
-      remaining: maxAttempts - 1,
+      remaining: maxAttempts - entry.count,
       retryAfterSeconds: 0,
-      resetAt: new Date(now + windowMs),
+      resetAt: new Date(entry.windowStart + windowMs),
     };
-  }
-
-  if (entry.count >= maxAttempts) {
-    const retryAfterMs = windowMs - (now - entry.windowStart);
+  } catch {
     return {
       allowed: false,
       remaining: 0,
-      retryAfterSeconds: Math.ceil(retryAfterMs / 1000),
-      resetAt: new Date(entry.windowStart + windowMs),
+      retryAfterSeconds: Math.ceil(windowMs / 1000),
+      resetAt: new Date(now + windowMs),
     };
   }
-
-  entry.count += 1;
-  return {
-    allowed: true,
-    remaining: maxAttempts - entry.count,
-    retryAfterSeconds: 0,
-    resetAt: new Date(entry.windowStart + windowMs),
-  };
 }
 
 export function getClientIdentifier(

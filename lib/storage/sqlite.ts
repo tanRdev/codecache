@@ -1,6 +1,6 @@
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { and, desc, eq, inArray, like } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { getDb, setDatabasePathOverride } from "@/lib/drizzle";
 import {
   attachmentsTable,
@@ -50,6 +50,14 @@ export async function ensureLocalUser(userId: string) {
 
 function normalizeTags(tags: string[]) {
   return tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean);
+}
+
+/**
+ * Escapes LIKE wildcards (and the escape character itself) so user-supplied
+ * search terms are matched literally. Paired with `ESCAPE '\'` in the query.
+ */
+function escapeLikeTerm(term: string) {
+  return term.replace(/[\\%_]/g, (char) => `\\${char}`);
 }
 
 function buildSearchText(input: {
@@ -187,7 +195,9 @@ export async function listSnippets(userId: string, input?: SearchSnippetsInput) 
 
   if (query) {
     for (const term of query.toLowerCase().split(/\s+/).filter(Boolean)) {
-      filters.push(like(snippetsTable.search_text, `%${term}%`));
+      filters.push(
+        sql`${snippetsTable.search_text} LIKE ${`%${escapeLikeTerm(term)}%`} ESCAPE '\\'`
+      );
     }
   }
 
@@ -264,36 +274,38 @@ export async function createSnippet(input: CreateSnippetRecordInput) {
   const now = new Date().toISOString();
   const tags = normalizeTags(input.tags);
 
-  await db.insert(snippetsTable).values({
-    id: input.id,
-    user_id: input.userId,
-    title: input.title,
-    description: input.description,
-    notes: input.notes,
-    language: input.language,
-    code: input.code,
-    search_text: buildSearchText({
-      code: input.code,
-      description: input.description,
-      language: input.language,
-      notes: input.notes,
-      tags,
+  db.transaction((tx) => {
+    tx.insert(snippetsTable).values({
+      id: input.id,
+      user_id: input.userId,
       title: input.title,
-    }),
-    created_at: now,
-    updated_at: now,
-  });
+      description: input.description,
+      notes: input.notes,
+      language: input.language,
+      code: input.code,
+      search_text: buildSearchText({
+        code: input.code,
+        description: input.description,
+        language: input.language,
+        notes: input.notes,
+        tags,
+        title: input.title,
+      }),
+      created_at: now,
+      updated_at: now,
+    }).run();
 
-  if (tags.length > 0) {
-    await db.insert(snippetTagsTable).values(
-      tags.map((tag) => ({
-        id: crypto.randomUUID(),
-        snippet_id: input.id,
-        tag,
-        created_at: now,
-      }))
-    );
-  }
+    if (tags.length > 0) {
+      tx.insert(snippetTagsTable).values(
+        tags.map((tag) => ({
+          id: crypto.randomUUID(),
+          snippet_id: input.id,
+          tag,
+          created_at: now,
+        }))
+      ).run();
+    }
+  });
 
   return { id: input.id };
 }
@@ -315,40 +327,42 @@ export async function updateSnippet(userId: string, snippetId: string, input: Up
     ? normalizeTags(input.tags)
     : await getSnippetTags(snippetId);
 
-  await db
-    .update(snippetsTable)
-    .set({
-      title,
-      description,
-      notes,
-      language,
-      code,
-      search_text: buildSearchText({
-        code,
-        description,
-        language,
-        notes,
-        tags,
+  db.transaction((tx) => {
+    tx.update(snippetsTable)
+      .set({
         title,
-      }),
-      updated_at: new Date().toISOString(),
-    })
-    .where(and(eq(snippetsTable.id, snippetId), eq(snippetsTable.user_id, userId)));
+        description,
+        notes,
+        language,
+        code,
+        search_text: buildSearchText({
+          code,
+          description,
+          language,
+          notes,
+          tags,
+          title,
+        }),
+        updated_at: new Date().toISOString(),
+      })
+      .where(and(eq(snippetsTable.id, snippetId), eq(snippetsTable.user_id, userId)))
+      .run();
 
-  if (input.tags !== undefined) {
-    await db.delete(snippetTagsTable).where(eq(snippetTagsTable.snippet_id, snippetId));
-    if (tags.length > 0) {
-      const now = new Date().toISOString();
-      await db.insert(snippetTagsTable).values(
-        tags.map((tag) => ({
-          id: crypto.randomUUID(),
-          snippet_id: snippetId,
-          tag,
-          created_at: now,
-        }))
-      );
+    if (input.tags !== undefined) {
+      tx.delete(snippetTagsTable).where(eq(snippetTagsTable.snippet_id, snippetId)).run();
+      if (tags.length > 0) {
+        const now = new Date().toISOString();
+        tx.insert(snippetTagsTable).values(
+          tags.map((tag) => ({
+            id: crypto.randomUUID(),
+            snippet_id: snippetId,
+            tag,
+            created_at: now,
+          }))
+        ).run();
+      }
     }
-  }
+  });
 
   return true;
 }
@@ -361,12 +375,16 @@ export async function deleteSnippet(userId: string, snippetId: string) {
   }
 
   const attachments = await listAttachments(userId, snippetId);
+
+  // Delete the row first (attachment rows cascade); a filesystem failure during
+  // cleanup below can only orphan files, never rows pointing at missing files.
+  const db = getDb();
+  await db.delete(snippetsTable).where(and(eq(snippetsTable.id, snippetId), eq(snippetsTable.user_id, userId)));
+
   for (const attachment of attachments) {
     await rm(getAttachmentPath(attachment.storage_key), { force: true });
   }
 
-  const db = getDb();
-  await db.delete(snippetsTable).where(and(eq(snippetsTable.id, snippetId), eq(snippetsTable.user_id, userId)));
   return true;
 }
 
@@ -412,17 +430,19 @@ export async function saveAttachment(input: CreateAttachmentRecordInput) {
 
 export async function savePendingAttachmentUpload(input: PendingAttachmentUploadRecord) {
   const db = getDb();
-  await db.delete(pendingAttachmentUploadsTable).where(eq(pendingAttachmentUploadsTable.file_id, input.fileId));
-  await db.insert(pendingAttachmentUploadsTable).values({
-    file_id: input.fileId,
-    user_id: input.userId,
-    snippet_id: input.snippetId,
-    storage_key: input.storageKey,
-    file_name: input.fileName,
-    file_size: input.fileSize,
-    mime_type: input.mimeType,
-    expires_at: input.expiresAt,
-    created_at: new Date().toISOString(),
+  db.transaction((tx) => {
+    tx.delete(pendingAttachmentUploadsTable).where(eq(pendingAttachmentUploadsTable.file_id, input.fileId)).run();
+    tx.insert(pendingAttachmentUploadsTable).values({
+      file_id: input.fileId,
+      user_id: input.userId,
+      snippet_id: input.snippetId,
+      storage_key: input.storageKey,
+      file_name: input.fileName,
+      file_size: input.fileSize,
+      mime_type: input.mimeType,
+      expires_at: input.expiresAt,
+      created_at: new Date().toISOString(),
+    }).run();
   });
 }
 
@@ -490,10 +510,12 @@ export async function deleteAttachment(userId: string, attachmentId: string) {
     return false;
   }
 
-  await rm(getAttachmentPath(attachment.storage_key), { force: true });
-
+  // Delete the row first so a filesystem failure below can only orphan the
+  // file, never leave a row pointing at a missing file.
   const db = getDb();
   await db.delete(attachmentsTable).where(eq(attachmentsTable.id, attachmentId));
+
+  await rm(getAttachmentPath(attachment.storage_key), { force: true });
   return true;
 }
 
