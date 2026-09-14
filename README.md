@@ -113,7 +113,7 @@ The repository contains:
 - `packages/cli/` — minimal publishable npm package
 - `content/docs/` — product documentation
 
-The product language is defined in [CONTEXT.md](./CONTEXT.md). Architectural
+The product language is defined in [docs/glossary.md](./docs/glossary.md). Architectural
 decisions live in [docs/adr](./docs/adr).
 
 ## Development

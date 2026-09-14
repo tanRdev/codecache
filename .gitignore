@@ -48,14 +48,5 @@ next-env.d.ts
 /playwright-report/
 /.openlogs/
 
-# agent artifacts
-.pi/
 dogfood-output/
-.claude-workflow/
-.superset/
 snippets-new-check.yml
-
-# project knowledge (overrides personal global ignores)
-!CONTEXT.md
-!docs/adr/
-!docs/adr/*.md
